@@ -10,7 +10,7 @@ require (
 	github.com/onsi/gomega v1.24.0
 	github.com/rs/zerolog v1.28.0
 	github.com/schollz/progressbar/v3 v3.13.1
-	github.com/spf13/cobra v1.6.1
+	github.com/spf13/cobra v1.10.2
 	github.com/thediveo/enumflag/v2 v2.0.1
 	go.uber.org/mock v0.4.0
 	golang.org/x/term v0.43.0
@@ -32,7 +32,7 @@ require (
 	github.com/godbus/dbus/v5 v5.2.2 // indirect
 	github.com/google/go-cmp v0.7.0 // indirect
 	github.com/ianlancetaylor/demangle v0.0.0-20251118225945-96ee0021ea0f // indirect
-	github.com/inconshreveable/mousetrap v1.0.1 // indirect
+	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/juju/go4 v0.0.0-20160222163258-40d72ab9641a // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
@@ -42,7 +42,7 @@ require (
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/spf13/pflag v1.0.9 // indirect
 	github.com/tetratelabs/wabin v0.0.0-20230304001439-f6f874872834 // indirect
 	github.com/tetratelabs/wazero v1.11.0 // indirect
 	github.com/uber/jaeger-client-go v2.30.0+incompatible // indirect
