@@ -10,8 +10,8 @@ Updated: 2026-09-01 (Europe/Moscow)
 - Public repository: `https://github.com/maksimryabkin/ipatool-sapfix`.
 - Branch: `main`.
 - Maintenance commit and release source: `ca83e408a30b624b806cbb9c7ca8130d2eef503d`.
-- Verified implementation tip before this state-only checkpoint:
-  `92c2a1caede18e0e929b80cc26a5bedcea2f5681`.
+- Verified repository tip before this handoff-only checkpoint:
+  `4ffad68a9cdd40ecd0b9808cb20240864b2fdc87`.
 - Final transition tag and prerelease: `2.3.2-sapfix.2`.
 - Upstream reference checked: `majd/ipatool` `v2.5.0` at
   `d5d0b56faf64e3fdef885d49e7928b390aadb6c7`.
@@ -62,9 +62,9 @@ Updated: 2026-09-01 (Europe/Moscow)
 - Local CommerceKit integration test: passed.
 - Local source `govulncheck@v1.7.0 ./...`: zero reachable vulnerabilities.
 - Cross-builds for macOS `arm64` and `amd64`: passed.
-- Final GitHub CI run `33522267792`: passed on macOS and Linux, including the
+- Final GitHub CI run `33522878310`: passed on macOS and Linux, including the
   SAP smoke test and vulnerability scan.
-- Final GitHub CodeQL run `33522267761`: passed; open code-scanning alerts:
+- Final GitHub CodeQL run `33522878380`: passed; open code-scanning alerts:
   zero.
 - Actions are restricted to GitHub-owned actions and immutable SHA references.
   Workflow tokens default to read-only.
@@ -114,3 +114,36 @@ Updated: 2026-09-01 (Europe/Moscow)
 The unrelated BotHelp/MAX attribution task that once used the old ipatool
 working directory is not part of this product and must not be merged into its
 source or continuity.
+
+## Rotation handoff
+
+- Objective: keep the final public SAP/HTTP 403 transition repository usable,
+  searchable, secure, and accurately directed toward maintained upstream
+  ipatool.
+- Completed: published and re-verified `2.3.2-sapfix.2`, updated the local
+  installation, answered and closed all current issues, hardened GitHub
+  Actions and repository security settings, and documented the upstream
+  migration path.
+- Git state before this documentation-only checkpoint: branch `main`, commit
+  `4ffad68a9cdd40ecd0b9808cb20240864b2fdc87`; the working tree had no modified,
+  untracked, or unpushed files and `origin/main` resolved to the same commit.
+  The commit containing this paragraph is a handoff-only successor.
+- Deployment state: the public GitHub repository and immutable `.2` release are
+  live. There is no server deployment. Locally, `/opt/homebrew/bin/ipatool`
+  resolves to the verified `.2` ARM binary; `.1` remains available for local
+  rollback.
+- Final checks: `go generate ./...`, `go test ./...`, `go vet ./...`,
+  `go build ./...`, source `govulncheck`, macOS/Ubuntu CI, CodeQL, archive
+  checksums, binary architecture/version checks, and the authenticated macOS
+  SAP smoke request all passed.
+- Next step: this maintenance stage is complete. A continuation task should
+  read this file, confirm the repository remains clean, and wait for the user's
+  next request. Do not invent further changes. Triage a new issue or security
+  alert only when one actually appears. Grouped Dependabot PR #11 remains open
+  intentionally for a deliberate future dependency review.
+- Remaining risks: Homebrew stable was still the unfixed `2.3.2` package on
+  2026-09-01; re-check before changing install guidance. Binary-mode
+  `govulncheck` has the conservative transitive-symbol limitation documented
+  above. The Intel archive has the cosmetic VCS `modified=true` metadata noted
+  above. Never overwrite the immutable `.2` release or expose local Keychain
+  authentication state.
