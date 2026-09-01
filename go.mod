@@ -4,7 +4,7 @@ go 1.26.6
 
 require (
 	github.com/avast/retry-go v3.0.0+incompatible
-	github.com/byteness/keyring v1.9.0
+	github.com/byteness/keyring v1.12.3
 	github.com/juju/persistent-cookiejar v1.0.0
 	github.com/onsi/ginkgo/v2 v2.5.0
 	github.com/onsi/gomega v1.24.0
@@ -13,18 +13,18 @@ require (
 	github.com/spf13/cobra v1.6.1
 	github.com/thediveo/enumflag/v2 v2.0.1
 	go.uber.org/mock v0.4.0
-	golang.org/x/term v0.43.0
+	golang.org/x/term v0.45.0
 	howett.net/plist v1.0.0
 )
 
 require (
 	github.com/1Password/connect-sdk-go v1.5.4-0.20250417152128-c154b387248b // indirect
-	github.com/1password/onepassword-sdk-go v0.4.1-beta.1 // indirect
+	github.com/1password/onepassword-sdk-go v0.4.1 // indirect
 	github.com/byteness/go-keychain v0.0.0-20191008050251-8e49817e8af4 // indirect
 	github.com/byteness/go-libsecret v0.0.0-20260108215642-107379d3dee0 // indirect
 	github.com/byteness/percent v0.2.2 // indirect
 	github.com/danieljoos/wincred v1.2.3 // indirect
-	github.com/dvsekhvalnov/jose2go v1.8.0 // indirect
+	github.com/dvsekhvalnov/jose2go v1.10.0 // indirect
 	github.com/dylibso/observe-sdk/go v0.0.0-20240828172851-9145d8ad07e1 // indirect
 	github.com/extism/go-sdk v1.7.1 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
@@ -49,15 +49,14 @@ require (
 	github.com/uber/jaeger-lib v2.4.1+incompatible // indirect
 	go.opentelemetry.io/proto/otlp v1.9.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
-	golang.org/x/crypto v0.52.0 // indirect
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e // indirect
 	golang.org/x/mod v0.35.0 // indirect
 	golang.org/x/net v0.55.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
-	golang.org/x/sys v0.45.0 // indirect
+	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/tools v0.44.0 // indirect
-	google.golang.org/protobuf v1.36.11 // indirect
+	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/errgo.v1 v1.0.1 // indirect
 	gopkg.in/retry.v1 v1.0.3 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
