@@ -14,7 +14,7 @@ require (
 	github.com/thediveo/enumflag/v2 v2.0.1
 	go.uber.org/mock v0.4.0
 	golang.org/x/term v0.43.0
-	howett.net/plist v1.0.0
+	howett.net/plist v1.0.1
 )
 
 require (
