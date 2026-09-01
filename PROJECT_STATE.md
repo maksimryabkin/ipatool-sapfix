@@ -10,6 +10,8 @@ Updated: 2026-09-01 (Europe/Moscow)
 - Public repository: `https://github.com/maksimryabkin/ipatool-sapfix`.
 - Branch: `main`.
 - Maintenance commit and release source: `ca83e408a30b624b806cbb9c7ca8130d2eef503d`.
+- Verified implementation tip before this state-only checkpoint:
+  `92c2a1caede18e0e929b80cc26a5bedcea2f5681`.
 - Final transition tag and prerelease: `2.3.2-sapfix.2`.
 - Upstream reference checked: `majd/ipatool` `v2.5.0` at
   `d5d0b56faf64e3fdef885d49e7928b390aadb6c7`.
@@ -55,13 +57,18 @@ Updated: 2026-09-01 (Europe/Moscow)
 - Local CommerceKit integration test: passed.
 - Local source `govulncheck@v1.7.0 ./...`: zero reachable vulnerabilities.
 - Cross-builds for macOS `arm64` and `amd64`: passed.
-- GitHub CI run `33520274417`: passed on macOS and Linux, including the SAP
-  smoke test and vulnerability scan.
-- GitHub CodeQL run `33520274639`: passed; open code-scanning alerts: zero.
+- Final GitHub CI run `33522267792`: passed on macOS and Linux, including the
+  SAP smoke test and vulnerability scan.
+- Final GitHub CodeQL run `33522267761`: passed; open code-scanning alerts:
+  zero.
 - Actions are restricted to GitHub-owned actions and immutable SHA references.
   Workflow tokens default to read-only.
 - Dependabot alerts, security updates, secret scanning, push protection, and
   private vulnerability reporting are enabled.
+- `main` requires the macOS test, Linux test, vulnerability scan, and CodeQL;
+  strict checks, linear history, and resolved conversations are enforced.
+  Force-pushes and branch deletion are disabled. Admin enforcement remains off
+  so the solo owner retains an emergency bypass.
 
 ## Community state
 
@@ -71,6 +78,9 @@ Updated: 2026-09-01 (Europe/Moscow)
 - Current reports should be filed at `https://github.com/majd/ipatool/issues`.
   This repository accepts only security, build, or documentation reports that
   are specific to the historical fork.
+- Dependabot PR #11 is the one allowed grouped monthly maintenance update. Its
+  checks pass, but it upgrades ten dependencies and is intentionally not
+  auto-merged into the already released transition build.
 - A downstream repository copied the Git history and continued independently.
   It is not a GitHub-native fork, but it preserves the MIT license and history.
 
