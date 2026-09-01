@@ -41,6 +41,11 @@ Updated: 2026-09-01 (Europe/Moscow)
 - Both binaries report `ipatool version 2.3.2-sapfix.2` and Go `1.26.6`.
 - The published ARM binary recognized the existing account and completed a
   live authenticated `list-versions` request on 2026-09-01.
+- Source-mode `govulncheck` reports zero reachable vulnerabilities. Binary mode
+  conservatively reports three symbol families from transitive `x/crypto` and
+  `x/net` code; the vulnerable calls are absent from the source call graph (and
+  the reported OpenPGP/server-SSH packages are not source dependencies). Do not
+  describe the binary scan itself as warning-free.
 - Local `/opt/homebrew/bin/ipatool` points to
   `/Users/maksim/.local/share/ipatool/2.3.2-sapfix.2/ipatool`. The previous
   `.1` binary remains available locally for rollback.
