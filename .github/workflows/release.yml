@@ -1,224 +1,89 @@
-name: Release
+name: Release macOS
 
 on:
   push:
     tags:
-      - "v*"
+      - "2.3.2-sapfix.*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  get_version:
-    name: Get version
-    runs-on: ubuntu-latest
-    steps:
-      - id: set_output
-        run: echo ::set-output name=version::${GITHUB_REF#refs/tags/v}
-    outputs:
-      version: ${{ steps.set_output.outputs.version }}
-  test:
-    name: Run tests
+  release:
+    name: Build and publish
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - name: Check out tagged source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          go-version: "1.25.0"
+          fetch-depth: 0
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
           cache: true
-      - run: go generate github.com/majd/ipatool/...
-      - run: go test -v github.com/majd/ipatool/...
-  build:
-    name: Build
-    runs-on: macos-latest
-    needs: [get_version, test]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: "1.25.0"
-          cache: true
-      - run: go build -ldflags="-X github.com/majd/ipatool/v2/cmd.version=$VERSION" -o ipatool-$VERSION-windows-arm64.exe
-        env:
-          GOOS: windows
-          GOARCH: arm64
-          VERSION: ${{ needs.get_version.outputs.version }}
-      - run: go build -ldflags="-X github.com/majd/ipatool/v2/cmd.version=$VERSION" -o ipatool-$VERSION-windows-amd64.exe
-        env:
-          GOOS: windows
-          GOARCH: amd64
-          VERSION: ${{ needs.get_version.outputs.version }}
-      - run: go build -ldflags="-X github.com/majd/ipatool/v2/cmd.version=$VERSION" -o ipatool-$VERSION-macos-arm64
-        env:
-          GOOS: darwin
-          GOARCH: arm64
-          VERSION: ${{ needs.get_version.outputs.version }}
-          CGO_CFLAGS: -mmacosx-version-min=10.15
-          CGO_LDFLAGS: -mmacosx-version-min=10.15
-          CGO_ENABLED: 1
-      - run: go build -ldflags="-X github.com/majd/ipatool/v2/cmd.version=$VERSION" -o ipatool-$VERSION-macos-amd64
-        env:
-          GOOS: darwin
-          GOARCH: amd64
-          VERSION: ${{ needs.get_version.outputs.version }}
-          CGO_CFLAGS: -mmacosx-version-min=10.15
-          CGO_LDFLAGS: -mmacosx-version-min=10.15
-          CGO_ENABLED: 1
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ipatool-${{ needs.get_version.outputs.version }}-windows-arm64.exe
-          path: ipatool-${{ needs.get_version.outputs.version }}-windows-arm64.exe
-          if-no-files-found: error
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ipatool-${{ needs.get_version.outputs.version }}-windows-amd64.exe
-          path: ipatool-${{ needs.get_version.outputs.version }}-windows-amd64.exe
-          if-no-files-found: error
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ipatool-${{ needs.get_version.outputs.version }}-macos-arm64
-          path: ipatool-${{ needs.get_version.outputs.version }}-macos-arm64
-          if-no-files-found: error
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ipatool-${{ needs.get_version.outputs.version }}-macos-amd64
-          path: ipatool-${{ needs.get_version.outputs.version }}-macos-amd64
-          if-no-files-found: error
-  build_linux:
-    name: Build for Linux
-    runs-on: ${{ matrix.runner }}
-    needs: [get_version, test]
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: arm64
-            runner: ubuntu-24.04-arm
-          - arch: amd64
-            runner: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: "1.25.0"
-          cache: true
-      - run: go build -ldflags="-X github.com/majd/ipatool/v2/cmd.version=$VERSION" -o ipatool-$VERSION-linux-$GOARCH
-        env:
-          GOARCH: ${{ matrix.arch }}
-          VERSION: ${{ needs.get_version.outputs.version }}
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ipatool-${{ needs.get_version.outputs.version }}-linux-${{ matrix.arch }}
-          path: ipatool-${{ needs.get_version.outputs.version }}-linux-${{ matrix.arch }}
-          if-no-files-found: error
-  release_windows:
-    name: Release for Windows
-    runs-on: ubuntu-latest
-    needs: [get_version, build]
-    strategy:
-      fail-fast: false
-      matrix:
-        arch: [arm64, amd64]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: ipatool-${{ needs.get_version.outputs.version }}-windows-${{ matrix.arch }}.exe
-          path: bin
-      - run: tar -czvf $FILE.tar.gz bin/$FILE.exe
-        env:
-          FILE: ipatool-${{ needs.get_version.outputs.version }}-windows-${{ matrix.arch }}
-      - run: ./tools/sha256sum.sh $TARBALL > $TARBALL.sha256sum
-        env:
-          TARBALL: ipatool-${{ needs.get_version.outputs.version }}-windows-${{ matrix.arch }}.tar.gz
-      - uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ipatool-${{ needs.get_version.outputs.version }}-windows-${{ matrix.arch }}.*
-          tag: ${{ github.ref }}
-          overwrite: false
-          file_glob: true
-  release_linux:
-    name: Release for Linux
-    runs-on: ubuntu-latest
-    needs: [get_version, build_linux, release_windows]
-    strategy:
-      fail-fast: false
-      matrix:
-        arch: [arm64, amd64]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          name: ipatool-${{ needs.get_version.outputs.version }}-linux-${{ matrix.arch }}
-          path: bin
-      - run: chmod +x bin/$FILE && tar -czvf $FILE.tar.gz bin/$FILE
-        env:
-          FILE: ipatool-${{ needs.get_version.outputs.version }}-linux-${{ matrix.arch }}
-      - run: ./tools/sha256sum.sh $TARBALL > $TARBALL.sha256sum
-        env:
-          TARBALL: ipatool-${{ needs.get_version.outputs.version }}-linux-${{ matrix.arch }}.tar.gz
-      - uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ipatool-${{ needs.get_version.outputs.version }}-linux-${{ matrix.arch }}.*
-          tag: ${{ github.ref }}
-          overwrite: false
-          file_glob: true
-  release_macos:
-    name: Release for macOS
-    runs-on: ubuntu-latest
-    needs: [get_version, build, build_linux, release_windows, release_linux]
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          path: ./ipatool
-      - uses: actions/download-artifact@v4
-        with:
-          name: ipatool-${{ needs.get_version.outputs.version }}-macos-arm64
-          path: bin
-      - run: chmod +x bin/$BIN && tar -czvf $BIN.tar.gz bin/$BIN && rm -rf bin/
-        env:
-          BIN: ipatool-${{ needs.get_version.outputs.version }}-macos-arm64
-      - uses: actions/download-artifact@v4
-        with:
-          name: ipatool-${{ needs.get_version.outputs.version }}-macos-amd64
-          path: bin
-      - run: chmod +x bin/$FILE && tar -czvf $FILE.tar.gz bin/$FILE && rm -rf bin/
-        env:
-          FILE: ipatool-${{ needs.get_version.outputs.version }}-macos-amd64
-      - id: sha256
+      - name: Verify source
         run: |
-          SHA256_ARM64=$(./ipatool/tools/sha256sum.sh ipatool-${{ needs.get_version.outputs.version }}-macos-arm64.tar.gz)
-          SHA256_AMD64=$(./ipatool/tools/sha256sum.sh ipatool-${{ needs.get_version.outputs.version }}-macos-amd64.tar.gz)
-          echo $SHA256_ARM64 > ipatool-${{ needs.get_version.outputs.version }}-macos-arm64.tar.gz.sha256sum
-          echo $SHA256_AMD64 > ipatool-${{ needs.get_version.outputs.version }}-macos-amd64.tar.gz.sha256sum
-          echo ::set-output name=sha256_arm64::$SHA256_ARM64
-          echo ::set-output name=sha256_amd64::$SHA256_AMD64
-      - uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ipatool-${{ needs.get_version.outputs.version }}-macos-*
-          tag: ${{ github.ref }}
-          overwrite: false
-          file_glob: true
-      - uses: actions/checkout@v4
-        with:
-          repository: ${{ secrets.HOMEBREW_REPO }}
-          ref: main
-          token: ${{ secrets.GH_TOKEN }}
-          path: homebrew-repo
-      - run: |
-          cd homebrew-repo
-          sed -i "3s/.*/    sha256 \"$SHA256_ARM64\"/" Casks/ipatool.rb
-          sed -i "4s/.*/    url \"https:\/\/github.com\/majd\/ipatool\/releases\/download\/v${{ needs.get_version.outputs.version }}\/ipatool-${{ needs.get_version.outputs.version }}-macos-arm64.tar.gz\"/" Casks/ipatool.rb
-          sed -i "5s/.*/    binary \"bin\/ipatool-${{ needs.get_version.outputs.version }}-macos-arm64\", target: \"ipatool\"/" Casks/ipatool.rb
-          sed -i "7s/.*/    sha256 \"$SHA256_AMD64\"/" Casks/ipatool.rb
-          sed -i "8s/.*/    url \"https:\/\/github.com\/majd\/ipatool\/releases\/download\/v${{ needs.get_version.outputs.version }}\/ipatool-${{ needs.get_version.outputs.version }}-macos-amd64.tar.gz\"/" Casks/ipatool.rb
-          sed -i "9s/.*/    binary \"bin\/ipatool-${{ needs.get_version.outputs.version }}-macos-amd64\", target: \"ipatool\"/" Casks/ipatool.rb
-          sed -i "12s/.*/  version \"${{ needs.get_version.outputs.version }}\"/" Casks/ipatool.rb
-          git config --local user.name ${{ secrets.GH_NAME }}
-          git config --local user.email ${{ secrets.GH_EMAIL }}
-          git add Casks/ipatool.rb
-          git commit -m "Update ipatool to v${{ needs.get_version.outputs.version }}"
-          git push "https://${{ secrets.GH_TOKEN }}@github.com/${{ secrets.HOMEBREW_REPO }}.git" --set-upstream "main"
+          go generate ./...
+          git diff --exit-code
+          go test ./...
+          go vet ./...
+          IPATOOL_TEST_APPLE_SAP=1 go test ./pkg/mescal \
+            -run '^TestSignIntegration$' -count=1 -v
+          go run golang.org/x/vuln/cmd/govulncheck@v1.7.0 ./...
+      - name: Build archives and checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist/bin
+          for arch in arm64 amd64; do
+            binary="ipatool-${GITHUB_REF_NAME}-macos-${arch}"
+            archive="${binary}.tar.gz"
+            CGO_ENABLED=1 GOOS=darwin GOARCH="$arch" \
+              CGO_CFLAGS="-mmacosx-version-min=10.15" \
+              CGO_LDFLAGS="-mmacosx-version-min=10.15" \
+              go build -trimpath \
+                -ldflags="-s -w -X github.com/majd/ipatool/v2/cmd.version=${GITHUB_REF_NAME}" \
+                -o "dist/bin/${binary}" .
+            COPYFILE_DISABLE=1 tar -C dist -czf "dist/${archive}" "bin/${binary}"
+            (
+              cd dist
+              shasum -a 256 "$archive" > "${archive}.sha256sum"
+              shasum -a 256 -c "${archive}.sha256sum"
+            )
+            file "dist/bin/${binary}"
+            go version -m "dist/bin/${binary}"
+          done
+      - name: Publish prerelease
+        shell: bash
         env:
-          SHA256_ARM64: ${{ steps.sha256.outputs.sha256_arm64 }}
-          SHA256_AMD64: ${{ steps.sha256.outputs.sha256_amd64 }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            dist/*.tar.gz \
+            dist/*.tar.gz.sha256sum \
+            --verify-tag \
+            --prerelease \
+            --title "ipatool ${GITHUB_REF_NAME} — final macOS SAP compatibility build" \
+            --notes-file - <<'EOF'
+          ## Final macOS compatibility build
+
+          This is a security rebuild of the historical macOS SAP login fix. It
+          is built from the tagged source with Go 1.26.6 after tests, vet,
+          `govulncheck`, and a macOS SAP signer smoke test pass in CI.
+
+          Official ipatool v2.4.0 and newer now includes maintained SAP
+          authentication. Use this release as a macOS transition build and move
+          to the latest official ipatool package once your installation source
+          offers v2.5.0 or newer built with a patched Go toolchain.
+
+          Download the archive matching `uname -m` and its `.sha256sum` file.
+          Verify it with `shasum -a 256 -c <file>.sha256sum` before installing.
+
+          The binaries are not notarized. They contain no Apple credentials or
+          authentication state. Never publish raw authentication logs.
+          EOF

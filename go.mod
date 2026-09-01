@@ -1,6 +1,6 @@
 module github.com/majd/ipatool/v2
 
-go 1.25.0
+go 1.26.6
 
 require (
 	github.com/avast/retry-go v3.0.0+incompatible

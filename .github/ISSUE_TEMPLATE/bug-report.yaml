@@ -1,25 +1,45 @@
-name: Bug Report
-description: File a bug report
+name: Legacy fork bug
+description: Report a security, build, or documentation problem specific to this historical fork
 labels:
   - bug
 body:
+  - type: markdown
+    attributes:
+      value: |
+        The App Store authentication fix is now available in official ipatool v2.4.0 and newer. Report current ipatool behavior to the upstream project. Use this form only for a problem specific to this repository.
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety check
+      options:
+        - label: I removed Apple ID email addresses, passwords, 2FA codes, DSIDs, tokens, cookies, and authorization headers.
+          required: true
   - type: textarea
     id: description
     attributes:
       label: What happened?
-      description: Also share, what did you expect to happen?
+      description: What did you expect, and why is this specific to ipatool-sapfix rather than official ipatool?
     validations:
       required: true
   - type: input
     id: version
     attributes:
       label: Version
-      description: What version of ipatool are you running?
+      description: Paste the output of `ipatool --version`.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: macOS version, Mac architecture (`uname -m`), and approximate time with timezone.
     validations:
       required: true
   - type: textarea
-    id: logs
+    id: error
     attributes:
-      label: Relevant log output
-      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      label: Redacted final error
+      description: Paste only the final redacted error. Do not attach raw or verbose authentication logs.
       render: shell
+    validations:
+      required: true

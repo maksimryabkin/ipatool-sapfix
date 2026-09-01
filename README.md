@@ -1,143 +1,150 @@
-# ipatool-sapfix — macOS App Store IPA downloader
+# ipatool-sapfix — final macOS App Store HTTP 403 fix
 
-[![Release](https://img.shields.io/github/v/release/maksimryabkin/ipatool-sapfix?include_prereleases&label=release)](https://github.com/maksimryabkin/ipatool-sapfix/releases)
+[![Status](https://img.shields.io/badge/status-maintenance-blue)](#project-status)
+[![Release](https://img.shields.io/github/v/release/maksimryabkin/ipatool-sapfix?include_prereleases&label=transition%20release)](https://github.com/maksimryabkin/ipatool-sapfix/releases)
+[![CI](https://github.com/maksimryabkin/ipatool-sapfix/actions/workflows/ci.yml/badge.svg)](https://github.com/maksimryabkin/ipatool-sapfix/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/maksimryabkin/ipatool-sapfix/actions/workflows/codeql.yml/badge.svg)](https://github.com/maksimryabkin/ipatool-sapfix/actions/workflows/codeql.yml)
 [![License](https://img.shields.io/badge/license-MIT-yellow.svg)](LICENSE)
 
 ![ipatool-sapfix macOS App Store HTTP 403 fix and IPA downloader](resources/social-preview.png)
 
-`ipatool-sapfix` is an unofficial macOS command-line tool for searching,
-acquiring, and downloading encrypted iPhone and iPad `.ipa` packages from the
-Apple App Store. This standalone build is based on
-[`ipatool`](https://github.com/majd/ipatool) and restores `ipatool auth login`
-when Apple authentication fails with:
+## Project status
+
+> [!IMPORTANT]
+> Official [`ipatool`](https://github.com/majd/ipatool) version 2.4.0 and newer
+> now includes maintained SAP-signed App Store authentication. Functional
+> development and current compatibility reports belong upstream.
+
+This repository remains public as the historical macOS fix and as a searchable
+answer for the error:
 
 ```text
 request failed: unexpected response from Apple (HTTP 403): empty or non-plist body
 ```
 
-The macOS App Store login fix adds Apple's required SAP action signature
-(`X-Apple-ActionSignature`) through the macOS CommerceKit service. It also keeps
-passwords and two-factor authentication codes out of verbose logs.
+The original patch added the required `X-Apple-ActionSignature` through macOS
+CommerceKit and removed passwords and two-factor codes from verbose logs.
+Upstream shipped a cross-platform SAP implementation in `v2.4.0` on August 28,
+2026, followed by more authentication fixes in `v2.5.0`.
 
-This is an unofficial community project. It is not affiliated with Apple or the
-upstream `ipatool` maintainers.
+Official `v2.5.0` was verified here on September 1, 2026 with an existing
+Keychain session and a live App Store version-list request. At that time,
+however, Homebrew still packaged `v2.3.2`, while the official `v2.5.0` release
+assets were compiled with the unpatched `go1.25.0` toolchain.
 
-## Download
+`2.3.2-sapfix.2` is therefore the final macOS transition release. It is rebuilt
+with Go 1.26.6 and is published only after tests, vet, a live macOS SAP signer
+smoke test, and `govulncheck` pass. Move to official ipatool once your package
+source provides `v2.5.0` or newer built with a patched Go toolchain.
 
-Download the current prerelease from the
-[Releases page](https://github.com/maksimryabkin/ipatool-sapfix/releases/tag/2.3.2-sapfix.1).
+## Download the transition build
+
+Download [`2.3.2-sapfix.2`](https://github.com/maksimryabkin/ipatool-sapfix/releases/tag/2.3.2-sapfix.2)
+and choose the archive matching `uname -m`:
 
 | Mac | `uname -m` | Archive |
 | --- | --- | --- |
-| Apple Silicon | `arm64` | `ipatool-2.3.2-sapfix.1-macos-arm64.tar.gz` |
-| Intel | `x86_64` | `ipatool-2.3.2-sapfix.1-macos-amd64.tar.gz` |
+| Apple Silicon | `arm64` | `ipatool-2.3.2-sapfix.2-macos-arm64.tar.gz` |
+| Intel | `x86_64` | `ipatool-2.3.2-sapfix.2-macos-amd64.tar.gz` |
 
-Each archive has a matching `.sha256sum` file attached to the release.
-
-## Install
-
-Apple Silicon example:
+Download the matching `.sha256sum` file as well. Apple Silicon example:
 
 ```shell
-shasum -a 256 -c ipatool-2.3.2-sapfix.1-macos-arm64.tar.gz.sha256sum
-tar -xzf ipatool-2.3.2-sapfix.1-macos-arm64.tar.gz
+shasum -a 256 -c ipatool-2.3.2-sapfix.2-macos-arm64.tar.gz.sha256sum
+tar -xzf ipatool-2.3.2-sapfix.2-macos-arm64.tar.gz
 sudo install -m 0755 \
-  bin/ipatool-2.3.2-sapfix.1-macos-arm64 \
+  bin/ipatool-2.3.2-sapfix.2-macos-arm64 \
   /usr/local/bin/ipatool
+command -v ipatool
 ipatool --version
 ```
 
-For an Intel Mac, replace `arm64` with `amd64` in the archive and binary names.
-
-If macOS reports that the downloaded binary cannot be opened, verify the
-checksum first and then remove only its quarantine attribute:
+For an Intel Mac, replace `arm64` with `amd64`. The binaries are not notarized.
+If macOS blocks one, verify its checksum first and remove only that file's
+quarantine attribute:
 
 ```shell
-xattr -d com.apple.quarantine bin/ipatool-2.3.2-sapfix.1-macos-arm64
+xattr -d com.apple.quarantine bin/ipatool-2.3.2-sapfix.2-macos-arm64
 ```
 
-## Use
+## Move to official ipatool
 
-Log in interactively so the password is read from the prompt rather than from
-the shell command line:
+Check what Homebrew currently offers before upgrading:
+
+```shell
+brew update
+brew info ipatool
+```
+
+Upgrade only when the displayed stable version is `2.5.0` or newer:
+
+```shell
+brew upgrade ipatool
+ipatool --version
+```
+
+Until then, use the transition build above or build the official tag with a
+patched Go toolchain:
+
+```shell
+git clone https://github.com/majd/ipatool.git
+cd ipatool
+git checkout v2.5.0
+GOTOOLCHAIN=go1.26.6 go test ./...
+GOTOOLCHAIN=go1.26.6 go build -trimpath \
+  -ldflags="-X github.com/majd/ipatool/v2/cmd.version=2.5.0-local" \
+  -o ipatool .
+sudo install -m 0755 ipatool /usr/local/bin/ipatool
+```
+
+## Authenticate
+
+Check the current session before logging in again:
+
+```shell
+ipatool auth info
+```
+
+Only if no account is shown, authenticate interactively so the password is not
+stored in shell history:
 
 ```shell
 ipatool auth login --email "you@example.com"
 ```
 
-Then search for, acquire, and download an app:
+## Security and support
 
-```shell
-ipatool search "Example App"
-ipatool purchase --bundle-identifier com.example.app
-ipatool download --bundle-identifier com.example.app \
-  --output ExampleApp.ipa
-```
+Never publish raw authentication logs. Redact email addresses, passwords,
+two-factor codes, tokens, cookies, authorization headers, and DSIDs.
 
-Run `ipatool --help` or `ipatool <command> --help` for all available options.
+Report current ipatool behavior and feature requests in
+[upstream Issues](https://github.com/majd/ipatool/issues). Use this repository's
+Issues only for a security, build, or documentation problem specific to this
+fork. See the [security policy](SECURITY.md) for private reports.
 
-## Requirements and limitations
+The repository and its release artifacts contain no Apple account credentials
+or authentication state. Local authentication state remains in the user's
+credential store and is not part of Git.
 
-- App Store authentication in this build requires macOS with cgo enabled.
-- Release binaries are provided for Apple Silicon and Intel Macs.
-- The App Store protocol is private and can change without notice.
-- Downloaded App Store packages remain encrypted and are tied to the Apple ID
-  that acquired them.
-- You are responsible for following Apple's terms and applicable law.
+## Build the historical source
 
-## Frequently asked questions
-
-### How do I fix `ipatool auth login` returning HTTP 403?
-
-Install this macOS build and run the normal interactive login command. It signs
-the authentication request with the SAP action signature now expected by the
-Apple App Store endpoint.
-
-### Does it work on Apple Silicon and Intel Macs?
-
-The release includes native `arm64` and `amd64` binaries. Live App Store login
-has been verified on Apple Silicon; reports from Intel Mac users are welcome.
-
-### Why is App Store authentication macOS-only?
-
-The required `X-Apple-ActionSignature` is generated through Apple's CommerceKit
-service, which is available on macOS. Other platforms cannot use this signing
-implementation.
-
-### Does `ipatool` decrypt downloaded IPA files?
-
-No. It downloads the encrypted App Store package associated with the Apple ID
-that acquired the app.
-
-## Support
-
-Use [GitHub Issues](https://github.com/maksimryabkin/ipatool-sapfix/issues) for
-bugs and compatibility reports. Include the macOS version, Mac architecture,
-`ipatool --version`, and a redacted error message. Never include credentials or
-raw authentication data.
-
-## Build from source
-
-Install a recent Go toolchain and the Xcode command line tools, then run:
+Use Go 1.26.6 or newer. On macOS with Xcode command line tools installed:
 
 ```shell
 git clone https://github.com/maksimryabkin/ipatool-sapfix.git
 cd ipatool-sapfix
-CGO_ENABLED=1 go build -trimpath -o ipatool .
-./ipatool --version
+go generate ./...
+go test ./...
+go vet ./...
+go build ./...
 ```
 
-## Security and privacy
-
-The repository and release artifacts contain no Apple ID, password, two-factor
-code, session token, or local build path. GitHub secret scanning and push
-protection are enabled for the public repository.
-
-Do not publish raw authentication logs. If you report a bug, redact email
-addresses, tokens, cookies, DSIDs, passwords, and two-factor codes first.
+GitHub Actions also runs the macOS SAP signer smoke test, `govulncheck`, and
+CodeQL. Release automation is macOS-only, uses pinned official actions and
+minimal permissions, and cannot write to an unrelated Homebrew repository.
 
 ## Credits and license
 
 Based on [`majd/ipatool`](https://github.com/majd/ipatool) and distributed under
-the [MIT License](LICENSE). The original copyright and license notice are
-preserved.
+the [MIT License](LICENSE). The original copyright and license notice and full
+Git history are preserved.

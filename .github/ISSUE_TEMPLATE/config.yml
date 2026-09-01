@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Official ipatool support
+    url: https://github.com/majd/ipatool/issues
+    about: Report current App Store compatibility and feature requests upstream.
+  - name: Official ipatool releases
+    url: https://github.com/majd/ipatool/releases
+    about: Download the maintained official version.
