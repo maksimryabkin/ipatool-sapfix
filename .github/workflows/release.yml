@@ -39,7 +39,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p dist/bin
+          release_dir="$RUNNER_TEMP/ipatool-release"
+          mkdir -p "$release_dir/bin"
           for arch in arm64 amd64; do
             binary="ipatool-${GITHUB_REF_NAME}-macos-${arch}"
             archive="${binary}.tar.gz"
@@ -48,24 +49,26 @@ jobs:
               CGO_LDFLAGS="-mmacosx-version-min=10.15" \
               go build -trimpath \
                 -ldflags="-s -w -X github.com/majd/ipatool/v2/cmd.version=${GITHUB_REF_NAME}" \
-                -o "dist/bin/${binary}" .
-            COPYFILE_DISABLE=1 tar -C dist -czf "dist/${archive}" "bin/${binary}"
+                -o "$release_dir/bin/${binary}" .
+            COPYFILE_DISABLE=1 tar -C "$release_dir" \
+              -czf "$release_dir/${archive}" "bin/${binary}"
             (
-              cd dist
+              cd "$release_dir"
               shasum -a 256 "$archive" > "${archive}.sha256sum"
               shasum -a 256 -c "${archive}.sha256sum"
             )
-            file "dist/bin/${binary}"
-            go version -m "dist/bin/${binary}"
+            file "$release_dir/bin/${binary}"
+            go version -m "$release_dir/bin/${binary}"
           done
       - name: Publish prerelease
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          release_dir="$RUNNER_TEMP/ipatool-release"
           gh release create "$GITHUB_REF_NAME" \
-            dist/*.tar.gz \
-            dist/*.tar.gz.sha256sum \
+            "$release_dir"/*.tar.gz \
+            "$release_dir"/*.tar.gz.sha256sum \
             --verify-tag \
             --prerelease \
             --title "ipatool ${GITHUB_REF_NAME} — final macOS SAP compatibility build" \

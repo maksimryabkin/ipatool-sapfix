@@ -1,58 +1,101 @@
 # Project state
 
-Updated: 2026-08-28 (Europe/Moscow)
+Updated: 2026-09-01 (Europe/Moscow)
 
 ## Identity
 
-- Project: `ipatool-sapfix`, macOS App Store authentication compatibility fork.
-- Canonical local root: `~/Projects/active/ipatool-sapfix`.
-- Compatibility path: the former local Codex root points to the canonical root.
-- Public repository: `https://github.com/maksimryabkin/ipatool-sapfix.git`.
+- Project: `ipatool-sapfix`, the historical macOS App Store authentication
+  compatibility fork.
+- Canonical local root: `/Users/maksim/Projects/active/ipatool-sapfix`.
+- Public repository: `https://github.com/maksimryabkin/ipatool-sapfix`.
 - Branch: `main`.
-- Verified source snapshot: `6fb420d04ef884515dd4ddf7f676b5cfe6af3252`.
-- Current release: `2.3.2-sapfix.1`.
-- The current local issue-monitoring task is retained.
+- Maintenance commit and release source: `ca83e408a30b624b806cbb9c7ca8130d2eef503d`.
+- Final transition tag and prerelease: `2.3.2-sapfix.2`.
+- Upstream reference checked: `majd/ipatool` `v2.5.0` at
+  `d5d0b56faf64e3fdef885d49e7928b390aadb6c7`.
 
-## Verification
+## Product status
 
-- Local `main` and live `origin/main` were equal at the verified snapshot.
-- `go test ./...`: passed on 2026-08-28.
-- `go build ./...`: passed on 2026-08-28.
-- Matching pre/post move manifests cover 220 files, 75 directories, and
-  3,046,658 file bytes.
-- A complete verified bundle preserves all local branches, remotes, tags, and
-  Codex turn-diff checkpoint refs.
+- Official ipatool `v2.4.0` and newer now contains maintained SAP-signed
+  authentication. Functional development and current compatibility reports
+  belong upstream.
+- Official `v2.5.0` was verified on this Apple Silicon Mac on 2026-09-01: the
+  existing Keychain account was recognized and a live authenticated
+  `list-versions` request succeeded.
+- As checked on 2026-09-01, Homebrew stable still packaged `v2.3.2`, and the
+  upstream `v2.5.0` release asset was compiled with `go1.25.0`. Building the
+  same upstream source with `go1.26.6` passed generate, tests, vet, build, and
+  source `govulncheck` with zero reachable vulnerabilities.
+- This repository remains public for search/provenance and supplies one final
+  macOS transition build. Future functional changes should not be developed
+  here.
 
-## Product state
+## Release verification
 
-- Fresh interactive login and an authenticated version-list request were
-  reported successful on Apple Silicon/macOS on 2026-08-28.
-- The repository is public and currently receives support traffic.
-- Issue #1 remains open as a potentially environment-dependent authentication
-  bug; issue #3 remains open as a support question. Issues #2 and #4 are closed.
+- GitHub Actions release run `33520513797` completed successfully.
+- Both published archives were downloaded again and their `.sha256sum` files
+  passed `shasum -a 256 -c`.
+- The extracted binaries are native Mach-O `arm64` and `x86_64` executables.
+- Both binaries report `ipatool version 2.3.2-sapfix.2` and Go `1.26.6`.
+- The published ARM binary recognized the existing account and completed a
+  live authenticated `list-versions` request on 2026-09-01.
+- Local `/opt/homebrew/bin/ipatool` points to
+  `/Users/maksim/.local/share/ipatool/2.3.2-sapfix.2/ipatool`. The previous
+  `.1` binary remains available locally for rollback.
+- The Intel binary's Go VCS metadata reports `modified=true` because the first
+  architecture was packaged inside the checkout before the Intel build. The
+  source verification ran before packaging and the published checksum is
+  correct. The workflow now builds outside the checkout so this cannot recur;
+  the immutable `.2` asset was not replaced for a cosmetic metadata flag.
+
+## Verification and automation
+
+- Local `go generate ./...`, `go test ./...`, `go vet ./...`, and
+  `go build ./...`: passed with Go 1.26.6 on 2026-09-01.
+- Local CommerceKit integration test: passed.
+- Local source `govulncheck@v1.7.0 ./...`: zero reachable vulnerabilities.
+- Cross-builds for macOS `arm64` and `amd64`: passed.
+- GitHub CI run `33520274417`: passed on macOS and Linux, including the SAP
+  smoke test and vulnerability scan.
+- GitHub CodeQL run `33520274639`: passed; open code-scanning alerts: zero.
+- Actions are restricted to GitHub-owned actions and immutable SHA references.
+  Workflow tokens default to read-only.
+- Dependabot alerts, security updates, secret scanning, push protection, and
+  private vulnerability reporting are enabled.
+
+## Community state
+
+- All repository issues are answered and closed. Issue #1 records the final
+  transient-authentication result and migration path. Issue #4 has a corrective
+  note that current official ipatool supports Windows.
+- Current reports should be filed at `https://github.com/majd/ipatool/issues`.
+  This repository accepts only security, build, or documentation reports that
+  are specific to the historical fork.
 - A downstream repository copied the Git history and continued independently.
-  It is not a GitHub-native fork, but it preserves history and the MIT license.
-  Do not import its session-transfer or GitHub Actions changes without a
-  separate security review.
+  It is not a GitHub-native fork, but it preserves the MIT license and history.
 
-## Security and local state
+## Security rules
 
-- Apple account identity, password, two-factor codes, DSID, cookies, and session
-  tokens must never be committed, pasted into issue comments, or recorded in
-  this state file.
-- Local authentication state belongs to macOS Keychain and is not part of this
-  repository or its backup.
-- Keep tests and issue responses redacted. Avoid verbose authentication logs in
-  public reports.
+- Never commit, publish, or summarize Apple account identities, passwords,
+  two-factor codes, DSIDs, cookies, session tokens, authorization headers, or
+  raw authentication logs.
+- Local authentication state belongs to macOS Keychain and is not part of the
+  repository, release assets, or project state.
+- The old `2.3.2-sapfix.1` assets are retained for provenance but are marked
+  unsupported and superseded. Do not delete or replace immutable release
+  assets.
 
-## Next actions
+## Maintenance policy
 
-1. Monitor open issues and wait for affected users to confirm whether the
-   post-August-27 login failures persist.
-2. Reproduce any new authentication report without publishing account data.
-3. Keep future Codex work rooted at the canonical path.
-4. Retain the current ipatool task while public issue monitoring is active.
+1. Keep security automation and the exact HTTP 403 text available for users
+   arriving from search.
+2. Group routine dependency updates monthly; merge only after all required
+   checks pass and the change is relevant to maintenance.
+3. Do not publish another feature release. If a severe fork-specific security
+   issue requires a binary update, document the reason and create a new tag;
+   never overwrite `.2`.
+4. Re-check Homebrew/upstream packaging before changing migration instructions.
 
-The unrelated BotHelp/MAX attribution task that happened to use the old ipatool
+The unrelated BotHelp/MAX attribution task that once used the old ipatool
 working directory is not part of this product and must not be merged into its
 source or continuity.
